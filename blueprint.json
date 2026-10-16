@@ -1,0 +1,75 @@
+{
+    "name": "Meta Lead Ads to Telegram Integration",
+    "flow": [
+        {
+            "id": 1,
+            "module": "facebook-lead-ads:watchLeads",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": "YOUR_META_BUSINESS_CONNECTION_ID",
+                "pageId": "YOUR_FACEBOOK_PAGE_ID",
+                "formId": "YOUR_LEAD_FORM_ID"
+            },
+            "mapper": {},
+            "metadata": {
+                "expect": [
+                    {"name": "lead_id", "type": "text"},
+                    {"name": "created_time", "type": "text"},
+                    {"name": "form_id", "type": "text"},
+                    {"name": "full_name", "type": "text"},
+                    {"name": "phone_number", "type": "text"},
+                    {"name": "email", "type": "text"}
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "router:router",
+            "version": 1,
+            "parameters": {},
+            "mapper": {},
+            "routes": [
+                {
+                    "id": 3,
+                    "filter": {
+                        "name": "Valid phone status",
+                        "conditions": [
+                            [
+                                {
+                                    "a": "{{1.phone_number}}",
+                                    "o": "exists"
+                                }
+                            ]
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "module": "telegram-bot-api:sendMessage",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": "YOUR_TELEGRAM_BOT_CONNECTION_ID"
+            },
+            "mapper": {
+                "chat_id": "YOUR_TELEGRAM_CHAT_OR_CHANNEL_ID",
+                "text": "New Lead Received from Meta Ads\n\nName: {{1.full_name}}\nPhone: {{1.phone_number}}\nEmail: {{1.email}}\nDate: {{1.created_time}}\n\n#meta_leads",
+                "parse_mode": "Markdown"
+            }
+        }
+    ],
+    "metadata": {
+        "version": 1,
+        "connections": {
+            "facebook-lead-ads": {
+                "type": "oauth2",
+                "label": "Meta Business Account"
+            },
+            "telegram-bot-api": {
+                "type": "apikey",
+                "label": "Telegram Bot API"
+            }
+        }
+    }
+}
